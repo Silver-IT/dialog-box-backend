@@ -41,9 +41,11 @@ exports.removeImage = (req, res) => {
 
 exports.getNFTs = (req, res) => {
     const filter = {};
-    if (req.query.collectionId) {
-        filter.collectionId = req.query.collectionId;
+    
+    if (req.query.collectionAddress) {
+        filter.collection_address = req.query.collectionAddress;
     }
+
     Nft.find(filter).exec((err, result) => {
         if (err) {
             res.status(500).send({ message: err });
@@ -54,20 +56,16 @@ exports.getNFTs = (req, res) => {
 
 exports.saveNFT = (req, res) => {
     try {
-        const { url, idForSale, collectionId, name, owner, description, royalty, price, property, onSale } = req.body;
+        const { metadata_id, token_id, collection_address, metadata, created_at, royalty_fraction } = req.body;
         const new_NFT = new Nft({
-            url: url,
-            idForSale: idForSale,
-            collectionId: collectionId,
-            name: name,
-            owner: owner.toUpperCase(),
-            description: description,
-            royalty: royalty,
-            price: price,
-            property: property,
-            onSale: onSale,
-            date: new Date().toGMTString()
+            metadata_id: metadata_id,
+            token_id: token_id,
+            collection_address: collection_address,
+            metadata: metadata,
+            royalty_fraction: royalty_fraction,
+            created_at: created_at
         });
+        
         new_NFT.save();
         res.status(200).send({
             success: true,
@@ -82,8 +80,8 @@ exports.saveNFT = (req, res) => {
 };
 
 exports.updateNFT = (req, res) => {
-    const filter = { idForSale: req.body.tokenId };
-    const updates = { owner: req.body.buyer.toUpperCase(), onSale: false };
+    const filter = { metadata_id: req.body.metadata_id };
+    const updates = { token_id: req.body.token_id };
     Nft.findOneAndUpdate(filter, updates, (err, result) => {
         if (err) {
             res.status(500).send(false);
@@ -107,6 +105,25 @@ exports.totalCount = async () => {
         console.log(error);
     }
 };
+
+exports.tokenURI = (req, res) => {
+ 
+    filter = {token_id : req.params.token_id}
+
+    Nft.findOne(filter).exec((err, result) => {
+        if (err) {
+            res.status(500).send({ message: err });
+        }
+  
+        if(result){
+            let metadata = JSON.parse(result.metadata);
+            res.status(200).send(metadata);
+        }else{
+            res.status(500).send({ message: err });
+        }
+        
+    });
+}
 
 exports.compareAndSaveNFTs = (data) => {
     Nft.find({ idForSale: data.token_id }).exec((err, result) => {

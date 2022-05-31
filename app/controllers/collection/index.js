@@ -41,26 +41,21 @@ exports.uploadCollectionImage = multer({
 
 exports.addCollection = async (req, res) => {
     try {
-        const collectionId = uuidv4();
+
+        console.log(req.body);
+
         const new_collection = new Collection({
-            collectionId: collectionId,
             title: req.body.title,
-            img: req.body.img,
+            symbol: req.body.symbol,
+            init_base_uri: req.body.initBaseURI,
+            init_logo_uri: req.body.initLogoURI,
+            max_supply: req.body.maxSupply,
+            mint_price: req.body.mintPrice,
+            address: req.body.address,
         });
+
         new_collection.save();
-        var data = await fs.readFileSync("collection.json");
-        var myObject = JSON.parse(data);
-        myObject.push(
-            {
-                collectionId: collectionId,
-                title: req.body.title,
-                img: req.body.img
-            }
-        );
-        var newData = JSON.stringify(myObject);
-        fs.writeFile("collection.json", newData, err => {
-            console.log("A new collection is added");
-        });
+
         res.status(200).send(true);
     } catch (error) {
         console.log(error);

@@ -5,7 +5,8 @@ const cors = require("cors");
 require("dotenv").config();
 const { getCountNft } = require("./app/contract/event");
 
-getCountNft();
+// removed
+// getCountNft();
 
 const app = express();
 

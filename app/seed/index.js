@@ -9,7 +9,9 @@ const users = [
     "0x97Dee6068fDfD33e82385024B43018b476caD6F4",
     "0xA07E0C1a60BF4c591744c014b108C775c3d2c954",
     "0x8Cc7228c5662D3076AD48636AAb817bd4FBcC491",
-    "0x2a2437A50d6683d374fF983d7aaf30ab444854A3"
+    "0x2a2437A50d6683d374fF983d7aaf30ab444854A3",
+    "0xBdf88f81255a5D1e89A61fFf6272071DF82D6d5f",
+    "0x8D67e22BBF1DcACD28Dd6B1d50862D45D34AA485"
 ];
 
 const aboutus_content = `<p style="text-align: center;"><span style="font-size: 12pt;">Hi! </span></p>
@@ -36,18 +38,6 @@ module.exports = async () => {
         await User.insertMany({ admin: item.toUpperCase() });
     })
     console.log("Users are seeded successfully!");
-
-    var data = await fs.readFileSync("collection.json");
-    var collections = await JSON.parse(data);
-
-    await collections.map(async (item) => {
-        await Collection.insertMany({
-            collectionId: item.collectionId,
-            title: item.title,
-            img: item.img
-        });
-    })
-    console.log("Collection is seeded successfully!");
 
     await Aboutus.insertMany({ content: aboutus_content });
     console.log("Aboutus content is seeded successfully!");

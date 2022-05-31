@@ -4,7 +4,6 @@ const { Controllers } = require("../../controllers");
 var artTokenContractABI = require("../abis/artToken.json");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
-// const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:3000"));
 const _Contract = new web3.eth.Contract(
     artTokenContractABI.abi,
     process.env.CONTRACT_ADDRESS

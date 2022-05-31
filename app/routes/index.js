@@ -54,4 +54,7 @@ module.exports = function (app) {
     app.post("/api/collection", Controllers.CollectionController.addCollection);
     app.put("/api/collection", Controllers.CollectionController.updateCollection);
     app.delete("/api/collection", Controllers.CollectionController.deleteCollection);
+
+    //metadata for a token
+    app.get("/token/:token_id", Controllers.NFTController.tokenURI);
 }
