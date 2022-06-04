@@ -8,11 +8,9 @@ const collectionSchema = new mongoose.Schema({
     },
     symbol: {
         type: String,
-        required: true
     },
     init_base_uri: {
         type: String,
-        required: true
     },
     init_logo_uri: {
         type: String,
@@ -20,7 +18,6 @@ const collectionSchema = new mongoose.Schema({
     },
     max_supply: {
         type: String,
-        required: true
     },
     mint_price: {
         type: String,

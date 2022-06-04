@@ -3,10 +3,9 @@ const mongoose = require('mongoose');
 const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
-const { getCountNft } = require("./app/contract/event");
+const { getAllCollectionsFromContract } = require("./app/contract/event");
 
-// removed
-// getCountNft();
+getAllCollectionsFromContract();
 
 const app = express();
 

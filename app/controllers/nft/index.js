@@ -124,29 +124,3 @@ exports.tokenURI = (req, res) => {
         
     });
 }
-
-exports.compareAndSaveNFTs = (data) => {
-    Nft.find({ idForSale: data.token_id }).exec((err, result) => {
-        if (result.length === 0) {
-            const uri_data = JSON.parse(data.token_uri);
-            Collection.findOne({ collectionId: uri_data.collectionId }).exec((err, result) => {
-                if (result !== null) {
-                    const new_NFT = new Nft({
-                        url: uri_data.nft,
-                        idForSale: data.token_id,
-                        collectionId: uri_data.collectionId,
-                        name: uri_data.name,
-                        owner: uri_data.owner.toUpperCase(),
-                        description: uri_data.description,
-                        royalty: uri_data.royalty,
-                        price: uri_data.price,
-                        property: uri_data.property,
-                        onSale: data.onSale,
-                        date: new Date().toGMTString()
-                    });
-                    new_NFT.save();
-                }
-            });
-        }
-    })
-};

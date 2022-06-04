@@ -8,11 +8,7 @@ module.exports = function (app) {
         );
         next();
     });
-
-    // Get Auth
-    app.get("/api/auth", Controllers.AuthController.auth);
-    // Get Collections
-    app.get("/api/collections", Controllers.CollectionController.getCollections);
+    
     // NFT Image Upload
     app.post("/api/file_upload", Controllers.NFTController.uploadNFT.single('file'), (req, res, next) => {
         const file_path = req.file.destination.substr(9) + "/" + req.file.filename;
@@ -39,9 +35,9 @@ module.exports = function (app) {
     app.post("/api/aboutus", Controllers.ArticleController.saveAboutus);
     app.get("/api/charity", Controllers.ArticleController.getCharity);
     app.post("/api/charity", Controllers.ArticleController.saveCharity);
-    app.get("/api/admins", Controllers.AdminController.getAllAdmins);
-    app.post("/api/admin", Controllers.AdminController.saveAdmin);
-    app.delete("/api/admin", Controllers.AdminController.delAdmin);
+    // app.get("/api/admins", Controllers.AdminController.getAllAdmins);
+    // app.post("/api/admin", Controllers.AdminController.saveAdmin);
+    // app.delete("/api/admin", Controllers.AdminController.delAdmin);
     app.post("/api/collection_image_upload",
         Controllers.CollectionController.uploadCollectionImage.single('file'), (req, res, next) => {
             const file_path = req.file.destination.substr(9) + "/" + req.file.filename;
@@ -51,9 +47,8 @@ module.exports = function (app) {
             });
         }
     );
-    app.post("/api/collection", Controllers.CollectionController.addCollection);
-    app.put("/api/collection", Controllers.CollectionController.updateCollection);
-    app.delete("/api/collection", Controllers.CollectionController.deleteCollection);
+    
+    app.get("/api/collections", Controllers.CollectionController.getCollections);
 
     //metadata for a token
     app.get("/token/:token_id", Controllers.NFTController.tokenURI);
