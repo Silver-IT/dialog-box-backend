@@ -3,6 +3,8 @@ const fs = require("fs");
 const Collection = require("../models/collection");
 const Aboutus = require("../models/aboutus");
 const Charity = require("../models/charity");
+const Faq = require("../models/faq");
+const Terms = require("../models/terms");
 
 const aboutus_content = `<p style="text-align: center;"><span style="font-size: 12pt;">Hi! </span></p>
 <p style="text-align: center;"><span style="font-size: 12pt;">We are a group of creators that like to hang out with each other. Since most of us are working in fields connected to graphics design, we felt like our conversations lacked a bit of imagery. That&rsquo;s why we decided to make this project in our free time. </span></p>
@@ -18,15 +20,25 @@ const charity_content = `<p style="text-align: center;">There is a lot of things
 <p style="text-align: center;">That&rsquo;s why we want to hear on this topic from you as well!</p>
 <p style="text-align: center;">In this project you have the opportunity to have a say in where we donate the money.</p>`;
 
+const faq_content = `<p style="text-align: center;">FAQ contents.</p>`;
+const terms_content = `<p style="text-align: center;">Terms and Conditions contents.</p>`;
+
 module.exports = async () => {
-    await Collection.deleteMany();
     await Aboutus.deleteMany();
     await Charity.deleteMany();
+    await Faq.deleteMany();
+    await Terms.deleteMany();
 
     await Aboutus.insertMany({ content: aboutus_content });
     console.log("Aboutus content is seeded successfully!");
 
     await Charity.insertMany({ content: charity_content });
+    console.log("Charity content is seeded successfully!");
+
+    await Faq.insertMany({ content: faq_content });
+    console.log("Faq content is seeded successfully!");
+
+    await Terms.insertMany({ content: terms_content });
     console.log("Charity content is seeded successfully!");
 
     mongoose.disconnect();

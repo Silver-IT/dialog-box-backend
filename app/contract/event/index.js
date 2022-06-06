@@ -11,96 +11,90 @@ const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
 var addressArray = [];
 
 exports.getAllCollectionsFromContract = async () => {
+  const tokenManagerContract = new web3.eth.Contract(
+    artTokenManagerContractABI.abi,
+    process.env.TOKENMANAGER_CONTRACT_ADDRESS
+  );
 
-    const tokenManagerContract = new web3.eth.Contract(
-        artTokenManagerContractABI.abi,
-        process.env.REACT_APP_TOKENMANAGER_CONTRACT_ADDRESS
+  //set event listener to collection deployment.
+  tokenManagerContract.events.CollectionAdded().on("data", async (event) => {
+    console.log(`collection deployed: ${event.returnValues._addr}`);
+
+    const artTokenContract = new web3.eth.Contract(
+      artTokenContractABI.abi,
+      event.returnValues._addr
     );
 
-    //set event listener to collection deployment.
-    tokenManagerContract.events.CollectionAdded().on('data', async (event) => {
-    
-        console.log(`collection deployed: ${event.returnValues._addr}`);
-    
-        const artTokenContract = new web3.eth.Contract(
-            artTokenContractABI.abi,
-            event.returnValues._addr
-        );
-    
-        let name = await artTokenContract.methods.name().call();
-        let symbol = await artTokenContract.methods.symbol().call();
-        let logoURL = await artTokenContract.methods.logoURI().call();
-        let mintPrice = await artTokenContract.methods.MINT_PRICE().call();
-        let maxSupply = await artTokenContract.methods.MAX_SUPPLY().call();
-        let baseURI = await artTokenContract.methods.baseURI().call();
-    
-        const new_collection = new Collection({
-            title: name,
-            symbol: symbol,
-            init_logo_uri: logoURL,
-            mint_price: web3.utils.fromWei(mintPrice, 'ether'),
-            max_supply: maxSupply,
-            address: event.returnValues._addr,
-            init_logo_uri: baseURI
-        });
-    
-        console.log(new_collection);
-    
-        new_collection.save();
-    
-    })    
+    let name = await artTokenContract.methods.name().call();
+    let symbol = await artTokenContract.methods.symbol().call();
+    let logoURL = await artTokenContract.methods.logoURI().call();
+    let mintPrice = await artTokenContract.methods.MINT_PRICE().call();
+    let maxSupply = await artTokenContract.methods.MAX_SUPPLY().call();
+    let baseURI = await artTokenContract.methods.baseURI().call();
 
+    const new_collection = new Collection({
+      title: name,
+      symbol: symbol,
+      init_logo_uri: logoURL,
+      mint_price: web3.utils.fromWei(mintPrice, "ether"),
+      max_supply: maxSupply,
+      address: event.returnValues._addr,
+      init_base_uri: baseURI,
+    });
 
-    // Get All NFT Data From Smart Contract
-    addressArray = await tokenManagerContract.methods.getAllCollections().call();
-    
-    for(let i = 0; i < addressArray.length; i++){
+    new_collection.save();
+  });
 
-        const tokenContract = new web3.eth.Contract(
-            artTokenContractABI.abi,
-            addressArray[i]
-        );
-        
-        let name = await tokenContract.methods.name().call();
-        let logoURL = await tokenContract.methods.logoURI().call();
-        let mintPrice = await tokenContract.methods.MINT_PRICE().call();
+  // Get All Collections From Smart Contract
+  Collection.collection.drop();
 
-        const new_collection = new Collection({
-            title: name,
-            init_logo_uri: logoURL,
-            mint_price: mintPrice,
-            address: addressArray[i],
-        });
+  addressArray = await tokenManagerContract.methods.getAllCollections().call();
 
-        await new_collection.save();
-    }
+  for (let i = 0; i < addressArray.length; i++) {
+    const tokenContract = new web3.eth.Contract(
+      artTokenContractABI.abi,
+      addressArray[i]
+    );
 
+    let name = await tokenContract.methods.name().call();
+    let symbol = await tokenContract.methods.symbol().call();
+    let logoURL = await tokenContract.methods.logoURI().call();
+    let mintPrice = await tokenContract.methods.MINT_PRICE().call();
+    let maxSupply = await tokenContract.methods.MAX_SUPPLY().call();
+    let baseURI = await tokenContract.methods.baseURI().call();
 
-    for(let i = 0; i < addressArray.length; i++){
+    const new_collection = new Collection({
+      title: name,
+      symbol: symbol,
+      init_logo_uri: logoURL,
+      mint_price: mintPrice,
+      address: addressArray[i],
+      max_supply: maxSupply,
+      init_base_uri: baseURI,
+    });
 
-        const tokenContract = new web3.eth.Contract(
-            artTokenContractABI.abi,
-            addressArray[i]
-        );
+    await new_collection.save();
+  }
 
-        console.log("address", addressArray[i]);
-    
-        tokenContract.events.TokenMinted().on('data', (event) => {
-            
-            console.log("token minted", event.returnValues);
-    
-            const filter = { metadata_id: event.returnValues._metadataId };
-            const updates = { token_id: event.returnValues._tokenId };
-            Nft.findOneAndUpdate(filter, updates, (err, result) => {
-                if (err) {
-                    console.log(err.message);
-                }
-                console.log("update success");
-            });
-    
-        })
-    }
+  for (let i = 0; i < addressArray.length; i++) {
+    const tokenContract = new web3.eth.Contract(
+      artTokenContractABI.abi,
+      addressArray[i]
+    );
 
+    console.log("address", addressArray[i]);
+
+    tokenContract.events.TokenMinted().on("data", (event) => {
+      console.log("token minted", event.returnValues);
+
+      const filter = { metadata_id: event.returnValues._metadataId };
+      const updates = { token_id: event.returnValues._tokenId };
+      Nft.findOneAndUpdate(filter, updates, (err, result) => {
+        if (err) {
+          console.log(err.message);
+        }
+        console.log("update success");
+      });
+    });
+  }
 };
-
-

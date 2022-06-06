@@ -7,11 +7,10 @@ const Nft = require("../../models/nft");
 exports.getCollections = (req, res) => {
     Collection.find().exec((err, result) => {
         if (err) {
-            console.log(err);
-            res.status(500).send({ message: err });
-            return;
+            res.json({success: false, error: err.message});
+        }else{
+            res.json({success: true, result: result});
         };
-        res.status(200).send(result);
     });
 };
 
