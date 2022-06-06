@@ -4,7 +4,6 @@ var artTokenManagerContractABI = require("../abis/artTokenManager.json");
 var artTokenContractABI = require("../abis/artToken.json");
 const Nft = require("../../models/nft");
 const { Controllers } = require("../../controllers");
-const { setArtTokenListener } = require("./event");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
 // const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:3000"));
@@ -75,7 +74,7 @@ exports.getAllCollectionsFromContract = async () => {
       init_base_uri: baseURI,
     });
 
-    console.log("collectionarray", new_collection);
+    console.log("collection: ", new_collection.title);
 
     await new_collection.save();
   }
@@ -83,4 +82,35 @@ exports.getAllCollectionsFromContract = async () => {
   for (let i = 0; i < addressArray.length; i++) {
     setArtTokenListener(addressArray[i]);
   }
+};
+
+
+const setArtTokenListener = (address) => {
+  const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, address);
+  console.log("setArtTokenEVentListener");
+  tokenContract.events.TokenMinted().on("data", (event) => {
+    console.log("TokenMinted", event.returnValues);
+
+    const filter = { metadata_id: event.returnValues._metadataId };
+    const updates = { token_id: event.returnValues._tokenId };
+    Nft.findOneAndUpdate(filter, updates, (err, result) => {
+      if (err) {
+        console.log(err.message);
+      }
+      console.log("token mint update success");
+    });
+  });
+
+  tokenContract.events.LogoURIUpdated().on("data", (event) => {
+    console.log("LogoURIUpdated", event.returnValues);
+
+    const filter = { address: address };
+    const updates = { init_logo_uri: event.returnValues._logoURI };
+    Collection.findOneAndUpdate(filter, updates, (err, result) => {
+      if (err) {
+        console.log(err.message);
+      }
+      console.log("logo update success");
+    });
+  });
 };
