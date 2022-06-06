@@ -4,6 +4,7 @@ var artTokenManagerContractABI = require("../abis/artTokenManager.json");
 var artTokenContractABI = require("../abis/artToken.json");
 const Nft = require("../../models/nft");
 const { Controllers } = require("../../controllers");
+const { setArtTokenListener } = require("./event");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
 // const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:3000"));
@@ -43,6 +44,7 @@ exports.getAllCollectionsFromContract = async () => {
     });
 
     new_collection.save();
+    setArtTokenListener(event.returnValues._addr);
   });
 
   // Get All Collections From Smart Contract
@@ -73,28 +75,12 @@ exports.getAllCollectionsFromContract = async () => {
       init_base_uri: baseURI,
     });
 
+    console.log("collectionarray", new_collection);
+
     await new_collection.save();
   }
 
   for (let i = 0; i < addressArray.length; i++) {
-    const tokenContract = new web3.eth.Contract(
-      artTokenContractABI.abi,
-      addressArray[i]
-    );
-
-    console.log("address", addressArray[i]);
-
-    tokenContract.events.TokenMinted().on("data", (event) => {
-      console.log("token minted", event.returnValues);
-
-      const filter = { metadata_id: event.returnValues._metadataId };
-      const updates = { token_id: event.returnValues._tokenId };
-      Nft.findOneAndUpdate(filter, updates, (err, result) => {
-        if (err) {
-          console.log(err.message);
-        }
-        console.log("update success");
-      });
-    });
+    setArtTokenListener(addressArray[i]);
   }
 };
