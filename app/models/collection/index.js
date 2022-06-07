@@ -29,8 +29,11 @@ const collectionSchema = new mongoose.Schema({
     address: {
         type: String,
         required: true
+    },
+    owner: {
+        type: String,
+        required: true
     }
-
 });
 
 module.exports = mongoose.model("collections", collectionSchema);

@@ -31,6 +31,7 @@ exports.getAllCollectionsFromContract = async () => {
     let mintPrice = await artTokenContract.methods.MINT_PRICE().call();
     let maxSupply = await artTokenContract.methods.MAX_SUPPLY().call();
     let baseURI = await artTokenContract.methods.baseURI().call();
+    let owner = await artTokenContract.methods.owner().call();
 
     const new_collection = new Collection({
       title: name,
@@ -40,6 +41,7 @@ exports.getAllCollectionsFromContract = async () => {
       max_supply: maxSupply,
       address: event.returnValues._addr,
       init_base_uri: baseURI,
+      owner: owner
     });
 
     new_collection.save();
@@ -63,6 +65,7 @@ exports.getAllCollectionsFromContract = async () => {
     let mintPrice = await tokenContract.methods.MINT_PRICE().call();
     let maxSupply = await tokenContract.methods.MAX_SUPPLY().call();
     let baseURI = await tokenContract.methods.baseURI().call();
+    let owner = await tokenContract.methods.owner().call();
 
     const new_collection = new Collection({
       title: name,
@@ -72,6 +75,7 @@ exports.getAllCollectionsFromContract = async () => {
       address: addressArray[i],
       max_supply: maxSupply,
       init_base_uri: baseURI,
+      owner: owner
     });
 
     console.log("collection: ", new_collection.title);

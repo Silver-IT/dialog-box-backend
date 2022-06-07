@@ -67,5 +67,5 @@ module.exports = function (app) {
   app.get("/api/collections", Controllers.CollectionController.getCollections);
 
   //metadata for a token
-  app.get("/:collection_address/token/:token_id", Controllers.NFTController.tokenURI);
+  app.get("/collection/:collection_address/token/:token_id", Controllers.NFTController.tokenURI);
 };

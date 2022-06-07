@@ -111,22 +111,26 @@ exports.tokenURI = (req, res) => {
     collection_address: req.params.collection_address,
   };
 
-  Nft.findOne(filter).exec((err, result) => {
-    if (err) {
-      res.json(err.message);
-    }
+  if (req.params.collection_address == "undefined") {
+    res.json({
+      image: SERVER_URL + "images/nft/undefined_nft.png",
+      name: "unknown",
+      description: "unknown",
+      attributes: {},
+    });
+  } else {
+    Nft.findOne(filter).exec((err, result) => {
+      if (err) {
+        res.json(err.message);
+      }
 
-    if (result) {
-      let metadata = JSON.parse(result.metadata);
-      metadata.image = SERVER_URL + metadata.image;
-      res.json(metadata);
-    } else {
-      res.json({
-        image: SERVER_URL + "images/nft/nft_unknown.png",
-        name: "unknown",
-        description: "unknown",
-        attributes: {},
-      });
-    }
-  });
+      if (result) {
+        let metadata = JSON.parse(result.metadata);
+        metadata.image = SERVER_URL + metadata.image;
+        res.json(metadata);
+      } else {
+        res.sendStatus(404);
+      }
+    });
+  }
 };
