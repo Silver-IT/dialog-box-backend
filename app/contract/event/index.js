@@ -1,79 +1,120 @@
-const axios = require("axios");
 var Web3 = require("web3");
-const { Controllers } = require("../../controllers");
+const Collection = require("../../models/collection");
+var artTokenManagerContractABI = require("../abis/artTokenManager.json");
 var artTokenContractABI = require("../abis/artToken.json");
+const Nft = require("../../models/nft");
+const { Controllers } = require("../../controllers");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
 // const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:3000"));
-const _Contract = new web3.eth.Contract(
-    artTokenContractABI.abi,
-    process.env.CONTRACT_ADDRESS
-);
 
-// Saving Item Added For Sale in Database
-_Contract.events.ItemAddedForSale()
-    .on('data', event => {
-        const tokenId = event.returnValues.tokenId;
-        addNewNft(tokenId);
-    })
+var addressArray = [];
 
-// Update Item Sold in Database
-_Contract.events.ItemSold()
-    .on('data', (event) => {
-        console.log(event);
-        const token_id = event.returnValues.id;
-        const buyer = event.returnValues.buyer;
-        Controllers.NFTController.updateNFTByEvent(token_id, buyer);
-    })
+exports.getAllCollectionsFromContract = async () => {
+  const tokenManagerContract = new web3.eth.Contract(
+    artTokenManagerContractABI.abi,
+    process.env.TOKENMANAGER_CONTRACT_ADDRESS
+  );
 
-const addNewNft = async (tokenId) => {
-    try {
-        let res = await axios.get(`https://deep-index.moralis.io/api/v2/nft/0x426a17AE20c55433090DEAEf309d76E9236a1b6B/${tokenId}?chain=ropsten&format=decimal`, {
-            headers: {
-                "Content-type": "application/json",
-                "X-API-Key": process.env.MORALIS_API_KEY
-            }
-        })
-        let data = res.data;
-        data.onSale = false;
-        Controllers.NFTController.compareAndSaveNFTs(data); // Data compare and save
-    } catch (error) {
-        // console.log(error, ": Get NFT data Error");
-    }
-}
+  //set event listener to collection deployment.
+  tokenManagerContract.events.CollectionAdded().on("data", async (event) => {
+    console.log(`collection deployed: ${event.returnValues._addr}`);
 
-// Get All NFT Data From Smart Contract
-exports.getCountNft = async () => {
-    try {
-        const count = await Controllers.NFTController.totalCount();
-        checkAndSaveNFT(93 + count + 1);
-    } catch (error) {
-        console.log(error);
-    }
+    const artTokenContract = new web3.eth.Contract(
+      artTokenContractABI.abi,
+      event.returnValues._addr
+    );
+
+    let name = await artTokenContract.methods.name().call();
+    let symbol = await artTokenContract.methods.symbol().call();
+    let logoURL = await artTokenContract.methods.logoURI().call();
+    let mintPrice = await artTokenContract.methods.MINT_PRICE().call();
+    let maxSupply = await artTokenContract.methods.MAX_SUPPLY().call();
+    let baseURI = await artTokenContract.methods.baseURI().call();
+    let owner = await artTokenContract.methods.owner().call();
+
+    const new_collection = new Collection({
+      title: name,
+      symbol: symbol,
+      init_logo_uri: logoURL,
+      mint_price: web3.utils.fromWei(mintPrice, "ether"),
+      max_supply: maxSupply,
+      address: event.returnValues._addr,
+      init_base_uri: baseURI,
+      owner: owner
+    });
+
+    new_collection.save();
+    setArtTokenListener(event.returnValues._addr);
+  });
+
+  // Get All Collections From Smart Contract
+  Collection.collection.drop();
+
+  addressArray = await tokenManagerContract.methods.getAllCollections().call();
+
+  for (let i = 0; i < addressArray.length; i++) {
+    const tokenContract = new web3.eth.Contract(
+      artTokenContractABI.abi,
+      addressArray[i]
+    );
+
+    let name = await tokenContract.methods.name().call();
+    let symbol = await tokenContract.methods.symbol().call();
+    let logoURL = await tokenContract.methods.logoURI().call();
+    let mintPrice = await tokenContract.methods.MINT_PRICE().call();
+    let maxSupply = await tokenContract.methods.MAX_SUPPLY().call();
+    let baseURI = await tokenContract.methods.baseURI().call();
+    let owner = await tokenContract.methods.owner().call();
+
+    const new_collection = new Collection({
+      title: name,
+      symbol: symbol,
+      init_logo_uri: logoURL,
+      mint_price: mintPrice,
+      address: addressArray[i],
+      max_supply: maxSupply,
+      init_base_uri: baseURI,
+      owner: owner
+    });
+
+    console.log("collection: ", new_collection.title);
+
+    await new_collection.save();
+  }
+
+  for (let i = 0; i < addressArray.length; i++) {
+    setArtTokenListener(addressArray[i]);
+  }
 };
 
-const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
-const checkAndSaveNFT = async (count) => {
-    // Getting All NFTs from Smart Contract.
-    let itemForSale = await _Contract.methods.itemsForSale(count).call()
 
-    if (itemForSale.seller === NULL_ADDRESS) {
-        console.log("Data saved successfully!");
-        return;
-    } else {
-        let res = await axios.get(`https://deep-index.moralis.io/api/v2/nft/0x426a17AE20c55433090DEAEf309d76E9236a1b6B/${count}?chain=ropsten&format=decimal`, {
-            headers: {
-                "Content-type": "application/json",
-                "X-API-Key": process.env.MORALIS_API_KEY
-            }
-        })
-        if (res.data.token_uri !== null && (res.data.token_uri).charAt(0) === "{" && JSON.parse(res.data.token_uri).hasOwnProperty("owner")) {
-            let data = res.data;
-            data.onSale = itemForSale.onSale;
-            Controllers.NFTController.compareAndSaveNFTs(data); // Data compare and save
-            checkAndSaveNFT(count + 1);
-        } else {
-            checkAndSaveNFT(count + 1);
-        }
-    }
+const setArtTokenListener = (address) => {
+  const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, address);
+  console.log("setArtTokenEVentListener");
+  tokenContract.events.TokenMinted().on("data", (event) => {
+    console.log("TokenMinted", event.returnValues);
+
+    const filter = { metadata_id: event.returnValues._metadataId };
+    const updates = { token_id: event.returnValues._tokenId };
+    Nft.findOneAndUpdate(filter, updates, (err, result) => {
+      if (err) {
+        console.log(err.message);
+      }
+      console.log("token mint update success");
+    });
+  });
+
+  tokenContract.events.LogoURIUpdated().on("data", (event) => {
+    console.log("LogoURIUpdated", event.returnValues);
+
+    const filter = { address: address };
+    const updates = { init_logo_uri: event.returnValues._logoURI };
+    Collection.findOneAndUpdate(filter, updates, (err, result) => {
+      if (err) {
+        console.log(err.message);
+      }
+      console.log("logo update success");
+    });
+  });
 };

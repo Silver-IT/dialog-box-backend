@@ -1,45 +1,26 @@
 const mongoose = require("mongoose");
 
 const nftSchema = new mongoose.Schema({
-    url: {
+    metadata_id: {
         type: String,
         required: true
     },
-    idForSale: {
-        type: Number,
-        required: true
+    token_id: {
+        type: String
     },
-    collectionId: {
+    collection_address: {
         type: String,
         required: true
     },
-    name: {
+    metadata: {
         type: String,
         required: true
     },
-    owner: {
+    royalty_fraction: {
         type: String,
         required: true
     },
-    description: {
-        type: String,
-        required: true
-    },
-    royalty: {
-        type: String,
-    },
-    price: {
-        type: String,
-        required: true
-    },
-    property: {
-        type: String,
-    },
-    onSale: {
-        type: Boolean,
-        require: true
-    },
-    date: {
+    created_at: {
         type: Date
     }
 });
