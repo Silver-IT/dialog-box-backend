@@ -8,6 +8,7 @@ const { getAllCollectionsFromContract } = require("./app/contract/event");
 getAllCollectionsFromContract();
 
 global.SERVER_URL = process.env.NODE_ENV == "development" ? process.env.DEVELOPMENT_URL : process.env.PRODUCTION_URL;
+console.log("Node environment ",process.env.NODE_ENV)
 
 const app = express();
 
