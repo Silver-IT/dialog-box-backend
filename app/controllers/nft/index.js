@@ -107,6 +107,9 @@ exports.totalCount = async () => {
 
 exports.tokenURI = (req, res) => {
 
+  const tokenString = req.params.token_id
+  const tokenId = tokenString.substring(0, tokenString.length - 5);
+
   const regex = new RegExp(req.params.hash, "i");
   const collectionFilter = {
     init_base_uri: { $regex: regex },
@@ -120,7 +123,7 @@ exports.tokenURI = (req, res) => {
     if (result) {
       const nftFilter = {
         collection_address: result.address,
-        token_id: req.params.token_id
+        token_id: tokenId
       };
       Nft.findOne(nftFilter).exec((err, result) => {
         if (err) {

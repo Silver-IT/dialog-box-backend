@@ -7,7 +7,12 @@ const { getAllCollectionsFromContract } = require("./app/contract/event");
 
 getAllCollectionsFromContract();
 
-global.SERVER_URL = process.env.NODE_ENV == "development" ? process.env.DEVELOPMENT_URL : process.env.PRODUCTION_URL;
+global.SERVER_URL =
+  process.env.NODE_ENV == "production"
+    ? process.env.PRODUCTION_URL
+    : process.env.NODE_ENV == "staging"
+    ? process.env.STAGING_URL
+    : process.env.DEVELOPMENT_URL;
 
 const app = express();
 
@@ -39,5 +44,3 @@ const PORT = process.env.SERVER_PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
-
-
