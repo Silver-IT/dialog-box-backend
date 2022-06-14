@@ -106,31 +106,40 @@ exports.totalCount = async () => {
 };
 
 exports.tokenURI = (req, res) => {
-  filter = {
-    token_id: req.params.token_id,
-    collection_address: req.params.collection_address,
+
+  const tokenString = req.params.token_id
+  const tokenId = tokenString.substring(0, tokenString.length - 5);
+
+  const regex = new RegExp(req.params.hash, "i");
+  const collectionFilter = {
+    init_base_uri: { $regex: regex },
   };
 
-  if (req.params.collection_address == "undefined") {
-    res.json({
-      image: SERVER_URL + "images/nft/undefined_nft.png",
-      name: "unknown",
-      description: "unknown",
-      attributes: {},
-    });
-  } else {
-    Nft.findOne(filter).exec((err, result) => {
-      if (err) {
-        res.json(err.message);
-      }
+  Collection.findOne(collectionFilter).exec((err, result) => {
+    if (err) {
+      res.json(err.message);
+    }
 
-      if (result) {
-        let metadata = JSON.parse(result.metadata);
-        metadata.image = SERVER_URL + metadata.image;
-        res.json(metadata);
-      } else {
-        res.sendStatus(404);
-      }
-    });
-  }
+    if (result) {
+      const nftFilter = {
+        collection_address: result.address,
+        token_id: tokenId
+      };
+      Nft.findOne(nftFilter).exec((err, result) => {
+        if (err) {
+          res.json(err.message);
+        }
+
+        if (result) {
+          let metadata = JSON.parse(result.metadata);
+          metadata.image = SERVER_URL + metadata.image;
+          res.json(metadata);
+        } else {
+          res.sendStatus(404);
+        }
+      });
+    } else {
+      res.sendStatus(404);
+    }
+  });
 };
