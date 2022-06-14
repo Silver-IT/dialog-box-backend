@@ -49,8 +49,12 @@ exports.getAllCollectionsFromContract = async () => {
   });
 
   // Get All Collections From Smart Contract
-  Collection.collection.drop();
-
+  try{
+    Collection.collection.drop();
+  }catch(error){
+    console.log("Drop 'collections' collection", error.message);
+  }
+  
   addressArray = await tokenManagerContract.methods.getAllCollections().call();
 
   for (let i = 0; i < addressArray.length; i++) {
@@ -91,7 +95,8 @@ exports.getAllCollectionsFromContract = async () => {
 
 const setArtTokenListener = (address) => {
   const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, address);
-  console.log("setArtTokenEVentListener");
+  console.log("setArtTokenEVentListener", address);
+
   tokenContract.events.TokenMinted().on("data", (event) => {
     console.log("TokenMinted", event.returnValues);
 
