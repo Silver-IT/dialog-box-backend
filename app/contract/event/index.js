@@ -6,11 +6,8 @@ const Nft = require("../../models/nft");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
 
-let tokenManagerContract = null;
-let tokenContracts = [];
-
 exports.getAllCollectionsFromContract = async () => {
-  tokenManagerContract = new web3.eth.Contract(
+  const tokenManagerContract = new web3.eth.Contract(
     artTokenManagerContractABI.abi,
     process.env.TOKENMANAGER_CONTRACT_ADDRESS
   );
@@ -44,9 +41,7 @@ exports.getAllCollectionsFromContract = async () => {
     });
 
     new_collection.save();
-    const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, address);
-    tokenContracts.push(tokenContract);
-    setArtTokenListener(tokenContract);
+    setArtTokenListener(event.returnValues._addr);
   });
 
   // Get All Collections From Smart Contract
@@ -86,18 +81,13 @@ exports.getAllCollectionsFromContract = async () => {
     console.log("collection: ", new_collection.title);
 
     await new_collection.save();
-  }
 
-  for (let i = 0; i < addressArray.length; i++) {
-    const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, addressArray[i]);
-    tokenContracts.push(tokenContract);
-    setArtTokenListener(tokenContract);
+    setArtTokenListener(addressArray[i]);
   }
 };
 
-
-const setArtTokenListener = (tokenContract) => {
-  const { address } = tokenContract.options;
+const setArtTokenListener = (address) => {
+  const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, address);
   console.log("setArtTokenEVentListener", address);
 
   tokenContract.events.TokenMinted().on("data", (event) => {
