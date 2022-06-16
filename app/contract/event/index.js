@@ -6,8 +6,8 @@ const Nft = require("../../models/nft");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
 
-const tokenManagerContract = null;
-const tokenContracts = [];
+let tokenManagerContract = null;
+let tokenContracts = [];
 
 exports.getAllCollectionsFromContract = async () => {
   tokenManagerContract = new web3.eth.Contract(
