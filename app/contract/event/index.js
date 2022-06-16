@@ -50,7 +50,8 @@ exports.getAllCollectionsFromContract = async () => {
       owner: owner
     });
 
-    // new_collection.save();
+    new_collection.save();
+    
     setArtTokenListener(event.returnValues._addr);
   });
 
@@ -90,7 +91,7 @@ exports.getAllCollectionsFromContract = async () => {
 
     console.log("collection: ", new_collection.title);
 
-    // await new_collection.save();
+    new_collection.save();
 
     setArtTokenListener(addressArray[i]);
   }
