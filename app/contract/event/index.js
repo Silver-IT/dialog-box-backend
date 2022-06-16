@@ -3,12 +3,10 @@ const Collection = require("../../models/collection");
 var artTokenManagerContractABI = require("../abis/artTokenManager.json");
 var artTokenContractABI = require("../abis/artToken.json");
 const Nft = require("../../models/nft");
-const { Controllers } = require("../../controllers");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
-// const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:3000"));
 
-var addressArray = [];
+const tokenContracts = [];
 
 exports.getAllCollectionsFromContract = async () => {
   const tokenManagerContract = new web3.eth.Contract(
@@ -45,17 +43,19 @@ exports.getAllCollectionsFromContract = async () => {
     });
 
     new_collection.save();
-    setArtTokenListener(event.returnValues._addr);
+    const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, address);
+    tokenContracts.push(tokenContract);
+    setArtTokenListener(tokenContract);
   });
 
   // Get All Collections From Smart Contract
-  try{
+  try {
     Collection.collection.drop();
-  }catch(error){
+  } catch(error) {
     console.log("Drop 'collections' collection", error.message);
   }
   
-  addressArray = await tokenManagerContract.methods.getAllCollections().call();
+  const addressArray = await tokenManagerContract.methods.getAllCollections().call();
 
   for (let i = 0; i < addressArray.length; i++) {
     const tokenContract = new web3.eth.Contract(
@@ -88,19 +88,24 @@ exports.getAllCollectionsFromContract = async () => {
   }
 
   for (let i = 0; i < addressArray.length; i++) {
-    setArtTokenListener(addressArray[i]);
+    const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, addressArray[i]);
+    tokenContracts.push(tokenContract);
+    setArtTokenListener(tokenContract);
   }
 };
 
 
-const setArtTokenListener = (address) => {
-  const tokenContract = new web3.eth.Contract(artTokenContractABI.abi, address);
+const setArtTokenListener = (tokenContract) => {
+  const { address } = tokenContract.options;
   console.log("setArtTokenEVentListener", address);
 
   tokenContract.events.TokenMinted().on("data", (event) => {
     console.log("TokenMinted", event.returnValues);
 
-    const filter = { metadata_id: event.returnValues._metadataId };
+    const filter = {
+      collection_address: address,
+      metadata_id: event.returnValues._metadataId
+    };
     const updates = { token_id: event.returnValues._tokenId };
     Nft.findOneAndUpdate(filter, updates, (err, result) => {
       if (err) {
