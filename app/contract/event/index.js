@@ -4,7 +4,10 @@ var artTokenManagerContractABI = require("../abis/artTokenManager.json");
 var artTokenContractABI = require("../abis/artToken.json");
 const Nft = require("../../models/nft");
 
-const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.WS_URL));
+const provider = new Web3.providers.WebsocketProvider(process.env.WS_URL)
+const web3 = new Web3(provider);
+provider.on('error', e => console.error('WS Error', e));
+provider.on('end', e => console.error('WS End', e));
 
 exports.getAllCollectionsFromContract = async () => {
   const tokenManagerContract = new web3.eth.Contract(
