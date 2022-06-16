@@ -42,16 +42,17 @@ exports.getAllCollectionsFromContract = async () => {
     const new_collection = new Collection({
       title: name,
       symbol: symbol,
-      init_logo_uri: logoURL,
-      mint_price: web3.utils.fromWei(mintPrice, "ether"),
+      logo_uri: logoURL,
+      mint_price: mintPrice,
       max_supply: maxSupply,
       address: event.returnValues._addr,
-      init_base_uri: baseURI,
+      base_uri: baseURI,
       owner: owner
     });
 
     new_collection.save();
     
+    console.log(`Deployed collection name: ${name}`);
     setArtTokenListener(event.returnValues._addr);
   });
 
@@ -81,11 +82,11 @@ exports.getAllCollectionsFromContract = async () => {
     const new_collection = new Collection({
       title: name,
       symbol: symbol,
-      init_logo_uri: logoURL,
+      logo_uri: logoURL,
       mint_price: mintPrice,
       address: addressArray[i],
       max_supply: maxSupply,
-      init_base_uri: baseURI,
+      base_uri: baseURI,
       owner: owner
     });
 
@@ -121,7 +122,7 @@ const setArtTokenListener = (address) => {
     console.log("LogoURIUpdated", event.returnValues);
 
     const filter = { address: address };
-    const updates = { init_logo_uri: event.returnValues._logoURI };
+    const updates = { logo_uri: event.returnValues._logoURI };
     Collection.findOneAndUpdate(filter, updates, (err, result) => {
       if (err) {
         console.log(err.message);
