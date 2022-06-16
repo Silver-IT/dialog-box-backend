@@ -4,10 +4,17 @@ var artTokenManagerContractABI = require("../abis/artTokenManager.json");
 var artTokenContractABI = require("../abis/artToken.json");
 const Nft = require("../../models/nft");
 
-const provider = new Web3.providers.WebsocketProvider(process.env.WS_URL)
-const web3 = new Web3(provider);
-provider.on('error', e => console.error('WS Error', e));
-provider.on('end', e => console.error('WS End', e));
+let provider = new Web3.providers.WebsocketProvider(process.env.WS_URL, {
+  clientConfig: {
+    keepalive: true,
+    keepaliveInterval: 60000
+  },
+  reconnect: {
+    auto: true,
+    delay: 1000,
+    maxAttempts: 10,
+}});
+let web3 = new Web3(provider);
 
 exports.getAllCollectionsFromContract = async () => {
   const tokenManagerContract = new web3.eth.Contract(
@@ -43,7 +50,7 @@ exports.getAllCollectionsFromContract = async () => {
       owner: owner
     });
 
-    new_collection.save();
+    // new_collection.save();
     setArtTokenListener(event.returnValues._addr);
   });
 
@@ -83,7 +90,7 @@ exports.getAllCollectionsFromContract = async () => {
 
     console.log("collection: ", new_collection.title);
 
-    await new_collection.save();
+    // await new_collection.save();
 
     setArtTokenListener(addressArray[i]);
   }
