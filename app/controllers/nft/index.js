@@ -112,7 +112,7 @@ exports.tokenURI = (req, res) => {
 
   const regex = new RegExp(req.params.hash, "i");
   const collectionFilter = {
-    init_base_uri: { $regex: regex },
+    base_uri: { $regex: regex },
   };
 
   Collection.findOne(collectionFilter).exec((err, result) => {
